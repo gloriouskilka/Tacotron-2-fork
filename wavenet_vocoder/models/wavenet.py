@@ -7,7 +7,9 @@ from wavenet_vocoder.util import *
 
 from .gaussian import sample_from_gaussian
 from .mixture import sample_from_discretized_mix_logistic
-from .modules import Conv1d1x1, ConvTranspose2d, DiscretizedMixtureLogisticLoss, Embedding, GaussianMaximumLikelihoodEstimation, LeakyReluActivation, MaskedCrossEntropyLoss, ReluActivation, ResidualConv1dGLU
+from .modules import Conv1d1x1, ConvTranspose2d, DiscretizedMixtureLogisticLoss, Embedding, \
+	GaussianMaximumLikelihoodEstimation, LeakyReluActivation, MaskedCrossEntropyLoss, ReluActivation, ResidualConv1dGLU, \
+	ToNHWC, FromNHWC
 
 
 def _expand_global_features(batch_size, time_length, global_features, data_format='BCT'):
@@ -131,9 +133,11 @@ class WaveNet():
 			self.upsample_conv = []
 			for i, s in enumerate(hparams.upsample_scales):
 				with tf.variable_scope('local_conditioning_upsampling_{}'.format(i+1)):
+					self.upsample_conv.append(ToNHWC())
 					convt = ConvTranspose2d(1, (hparams.freq_axis_kernel_size, 2 * s),
 						padding='same', strides=(1, s))
 					self.upsample_conv.append(convt)
+					self.upsample_conv.append(FromNHWC())
 					self.upsample_conv.append(LeakyReluActivation(alpha=hparams.leaky_alpha,
 						name='upsample_leaky_relu_{}'.format(i+1)))
 					#self.upsample_conv.append(ReluActivation(name='upsample_relu_{}'.format(i+1)))

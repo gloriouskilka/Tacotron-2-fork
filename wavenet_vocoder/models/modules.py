@@ -345,11 +345,20 @@ class ConvTranspose2d:
 			padding=padding,
 			kernel_initializer=tf.constant_initializer(1. / freq_axis_kernel_size, dtype=tf.float32),
 			bias_initializer=tf.zeros_initializer(),
-			data_format='channels_first')
+			data_format='channels_last')
 
 	def __call__(self, inputs):
 		return self.convt(inputs)
 
+
+class ToNHWC:
+	def __call__(self, inputs):
+		return tf.transpose(inputs, [0, 2, 3, 1])
+
+
+class FromNHWC:
+	def __call__(self, inputs):
+		return tf.transpose(inputs, [0, 3, 1, 2])
 
 
 def MaskedCrossEntropyLoss(outputs, targets, lengths=None, mask=None, max_len=None):
